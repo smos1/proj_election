@@ -2,11 +2,30 @@ import os
 import urllib
 import requests
 import argparse
-
+from io import BytesIO
 from time import sleep
 from random import randint
 
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+from matplotlib import image
+
+
+def get_captcha(referer):
+    """Function for get captcha image.
+
+    Args:
+        referer (str): URL where captcha is requested.
+
+    Returns:
+        numpy.ndarray: PNG image, the float32 numpy array.
+    """
+
+    domain = urllib.parse.urlparse(referer).netloc
+    response = requests.get(f"http://{domain}/captcha-service/image/", headers={"Referer": referer})
+    response.raise_for_status()
+
+    return plt.imread(BytesIO(response.content))
 
 
 def get_images(referer, path, n_images):
@@ -16,12 +35,8 @@ def get_images(referer, path, n_images):
         os.mkdir(path)
 
         for i in tqdm(range(n_images)):
-            domain = urllib.parse.urlparse(referer).netloc
-            response = requests.get(f"http://{domain}/captcha-service/image/", headers={"Referer": referer})
-            response.raise_for_status()
-
-            with open(os.path.join(path, f"{i}.png"), "wb") as f:
-                f.write(response.content)
+            captcha = get_captcha(referer)
+            image.imsave(os.path.join(path, f"{i}.png"), captcha)
 
             sleep(randint(1, 100) / 1000)
 
