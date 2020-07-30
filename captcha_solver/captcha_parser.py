@@ -1,4 +1,5 @@
 import os
+import re
 import urllib
 import requests
 import argparse
@@ -19,13 +20,23 @@ def get_captcha(referer):
 
     Returns:
         numpy.ndarray: PNG image, the float32 numpy array.
+        dict: izbirkomSession cookie for authorization in referer
+
     """
 
     domain = urllib.parse.urlparse(referer).netloc
     response = requests.get(f"http://{domain}/captcha-service/image/", headers={"Referer": referer})
     response.raise_for_status()
 
-    return plt.imread(BytesIO(response.content))
+    captcha = plt.imread(BytesIO(response.content))
+
+    match = re.match(r"(izbirkomSession)=([\w-]+)", response.headers["Set-Cookie"])
+    if match is not None:
+        cookies = {match.group(1): match.group(2)}
+
+        return captcha, cookies
+    else:
+        raise RuntimeError("izbirkomSession cookie not found")
 
 
 def get_images(referer, path, n_images):
@@ -35,7 +46,7 @@ def get_images(referer, path, n_images):
         os.mkdir(path)
 
         for i in tqdm(range(n_images)):
-            captcha = get_captcha(referer)
+            captcha, _ = get_captcha(referer)
             image.imsave(os.path.join(path, f"{i}.png"), captcha)
 
             sleep(randint(1, 100) / 1000)
