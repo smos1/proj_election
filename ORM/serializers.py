@@ -1,13 +1,6 @@
 from rest_framework import serializers
 import ORM.models
 
-
-class CandidateSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = '__all__'
-        model = ORM.models.Candidate
-
-
 class NominatorSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'

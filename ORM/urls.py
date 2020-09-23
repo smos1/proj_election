@@ -10,7 +10,6 @@ from .views import *
 router = routers.DefaultRouter()
 
 # define the router path and viewset to be used
-router.register(r'candidates', CandidateViewSet)
 router.register(r'nominators', NominatorViewSet)
 router.register(r'regions', RegionViewSet)
 router.register(r'elections', ElectionViewSet)
