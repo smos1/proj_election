@@ -11,21 +11,21 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+#from elections_db import credentials
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ')lb%$gj=l(5wab^2@e4exr%$le^@aw6qg#i@k)&+ey(1uq&)%_'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -74,19 +74,30 @@ WSGI_APPLICATION = 'elections_db.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+import json
+import os
+
+with open(os.path.join(BASE_DIR, 'credentials.json')) as credentials:
+    credentials = json.load(credentials)
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = credentials['secret_key']
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'elections_db',
-        'USER': 'elections_db_user',
-        'PASSWORD': 'k@F-9*2tSJ34rqw&',
-        'HOST': 'localhost'
+        'NAME': credentials['database'],
+        'USER': credentials['username'],
+        'PASSWORD': credentials['password'],
+        'HOST': credentials['host'],
     }
 }
 
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-ALLOWED_HOSTS = ['electionsdb.dexoon.cf']
+ALLOWED_HOSTS = ['.'.join([credentials['database'], credentials['host']]), 'localhost']
 
 AUTH_PASSWORD_VALIDATORS = [
     {
