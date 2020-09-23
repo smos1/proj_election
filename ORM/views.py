@@ -5,12 +5,6 @@ from rest_framework import viewsets
 import ORM.serializers
 import ORM.models
 
-
-class CandidateViewSet(viewsets.ModelViewSet):
-    queryset = ORM.models.Candidate.objects.all()
-    serializer_class = ORM.serializers.CandidateSerializer
-
-
 class NominatorViewSet(viewsets.ModelViewSet):
     queryset = ORM.models.Nominator.objects.all()
     serializer_class = ORM.serializers.NominatorSerializer

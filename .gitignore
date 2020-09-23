@@ -1,3 +1,2 @@
-.debug_notebook.ipynb
-election_data_lvl_0/
-election_data_lvl_1/
+/credentials.json
+**/__pycache__
