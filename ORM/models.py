@@ -43,7 +43,6 @@ class Election(models.Model):
                                           blank=True, null=True)
     election_date = models.DateField(blank=False, null=False)
 
-
     def __str__(self):
         return self.name
 
