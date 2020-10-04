@@ -154,6 +154,7 @@ class CandidatePerformance(models.Model):
         managed = True
         db_table = 'candidate_performance'
 
+
 class CikUik(models.Model):
     id = models.IntegerField(blank=True, null=True)
     iz_id = models.BigIntegerField(blank=True, null=True)
@@ -193,6 +194,7 @@ class CikUik(models.Model):
         managed = True
         db_table = 'cik_uik'
 
+
 class ResultsVseros(models.Model):
     name = models.CharField(max_length=1000)
     reg = models.CharField(max_length=200)
@@ -204,11 +206,11 @@ class ResultsVseros(models.Model):
     yes = models.IntegerField()
     no = models.IntegerField()
     url = models.CharField(max_length=1000)
-    uik_id = models.ForeignKey(to=CikUik, null=True, on_delete=models.SET_NULL)
-    tik_id = models.ForeignKey(to=CikUik, null=True, on_delete=models.SET_NULL)
+    uik_id = models.IntegerField()
+    tik_id = models.IntegerField()
     
     def __str__(self):
-        return self.name
+        return '{0} - {1}'.format(self.tik, self.tik_id)
 
     class Meta:
         managed = True
