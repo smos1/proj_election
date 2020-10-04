@@ -33,6 +33,7 @@ class DistrictType(ChoiceEnum):
 class CommissionType(ChoiceEnum):
 
     CIK = auto()
+    SIK = auto()
     OIK = auto()
     TIK = auto()
     UIK = auto()
