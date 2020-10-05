@@ -96,6 +96,7 @@ class CommissionMember(models.Model):
     position = models.CharField(max_length=50, choices=CommissionPositionType.choices())
     commission = models.ForeignKey(Commission, on_delete=models.CASCADE)
     nominator = models.ForeignKey(Nominator, on_delete=models.CASCADE)
+    snapshot_date = models.DateField(blank=False, null=False)
 
     def __str__(self):
         return self.name
