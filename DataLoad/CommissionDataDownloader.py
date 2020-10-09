@@ -12,6 +12,7 @@ from django.db.models import IntegerField, BigIntegerField, CharField, ForeignKe
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.engine import url
+from django_pandas.io import read_frame
 
 from elections_db.settings import SQLALCHEMY_DB_CREDENTIALS
 
@@ -69,7 +70,11 @@ class CommissionDataDownloader:
 
     TRANSLATE_CIK_TO_OUR_BASE = {
         'parent_id': 'superior_commission_id',
-        'type_ik': 'commission_type'
+        'type_ik': 'commission_type',
+        'post': 'position',
+        'fio': 'name',
+        'party': 'nominator_id',
+        'ik_id': 'commission_id'
     }
 
     @classmethod
@@ -123,7 +128,8 @@ class CommissionDataDownloader:
             df = df.reset_index().rename(columns = {'index': cls.ID})
         cls.change_column_names(df)
         missing_columns = np.setdiff1d(list(model_field_names.keys()), df.columns)
-        print('These columns are missing in downloaded df: {}'.format(list(missing_columns)))
+        if missing_columns.size>0:
+            print('These columns are missing in downloaded df: {}'.format(list(missing_columns)))
 
         for col in missing_columns:
             df[col] = np.nan
@@ -164,13 +170,15 @@ class CommissionDataDownloader:
         '''
         checks if nominators from list exist in database and adds them if needed
         '''
-        unique_nominators = np.unique(nominator_list)
-        existing_nominators = list(Nominator.objects.all().values(cls.NAME))
+        unique_nominators = list(set(nominator_list))
+        existing_nominators = read_frame(Nominator.objects.all())[cls.NAME].values
         updatable_nominators = np.setdiff1d(unique_nominators, existing_nominators)
 
         ## add nominator classification_function_here
-        engine = cls.create_sqlalchemy_engine()
-        pd.DataFrame({cls.NAME:updatable_nominators}).to_sql(Nominator.name, if_exists='append', index=False, con=engine)
+        if updatable_nominators.size > 0:
+            engine = cls.create_sqlalchemy_engine()
+            pd.DataFrame({cls.NAME:updatable_nominators}).to_sql(Nominator.objects.model._meta.db_table, if_exists='append',
+                                                                 index=False, con=engine, method='multi', chunksize=1000)
 
     @classmethod
     def save_all_data_to_db(cls, cik_uik_data, cik_people_data, snapshot_date):
@@ -178,7 +186,7 @@ class CommissionDataDownloader:
         CommissionMember.objects.filter(snapshot_date=snapshot_date).delete()
 
         max_commission_id = Commission.objects.aggregate(Max(cls.ID))['id__max']
-        max_member_id = Commission.objects.aggregate(Max(cls.ID))['id__max']
+        max_member_id = CommissionMember.objects.aggregate(Max(cls.ID))['id__max']
         max_commission_id = max_commission_id if max_commission_id else -1
         max_member_id = max_member_id if max_member_id else -1
 
@@ -195,13 +203,21 @@ class CommissionDataDownloader:
         cik_people_data = cls._repalace_old_index_with_new(people_index_df, cik_people_data, cls.ID)
 
         cik_uik_data = cls.assure_df_compatibility(Commission, cik_uik_data, auto_id=False)
-        cik_people_data = cls.assure_df_compatibility(CommissionMember, cik_people_data, auto_id=False)
+
 
         engine = cls.create_sqlalchemy_engine()
-        cik_uik_data.to_sql(Commission.objects.model._meta.db_table, if_exists='append', index=False, con=engine)
-        cik_people_data.to_sql(CommissionMember.objects.model._meta.db_table, if_exists='append', index=False, con=engine)
+        cik_uik_data.to_sql(Commission.objects.model._meta.db_table,
+                            if_exists='append', index=False, con=engine, method='multi', chunksize=1000)
 
-        cls.update_nominators(cik_people_data)
+        cls.update_nominators(cik_people_data['party'].dropna().values)
+        nominator_frame = read_frame(Nominator.objects.all())[['name', 'id']]
+        cik_people_data = cls._repalace_old_index_with_new(nominator_frame, cik_people_data, 'party')
+        cik_people_data = cls.assure_df_compatibility(CommissionMember, cik_people_data, auto_id=False)
+
+        cik_people_data.to_sql(CommissionMember.objects.model._meta.db_table,
+                               if_exists='append', index=False, con=engine, method='multi', chunksize=1000)
+
+
 
 if __name__ == '__main__':
     CommissionDataDownloader.download_and_parse_all_snapshots()
