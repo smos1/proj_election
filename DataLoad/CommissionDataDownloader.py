@@ -25,6 +25,7 @@ from ORM.models import Commission, CommissionMember, Nominator
 class CommissionDataDownloader:
 
     ID='id'
+    IZ_ID = 'iz_id'
     NEW_ID = 'new_id'
     PARENT_ID = 'parent_id'
     NEW = 'new'
@@ -94,8 +95,11 @@ class CommissionDataDownloader:
         for snapshot_date in cls.GISLAB_SNAPSHOT_DATES:
             date_in_datetime = cls.parse_date(snapshot_date)
             cik_uik_data = cls.get_df_from_site("cik_uik", snapshot_date)
+            # fake commission created by gis-lab to accomodate reserve member data
+            cik_uik_data = cik_uik_data[cik_uik_data[cls.IZ_ID] >= 0]
             cik_people_data = cls.get_df_from_site("cik_people", snapshot_date)
             cls.save_all_data_to_db(cik_uik_data, cik_people_data, date_in_datetime)
+            print("{} is uploaded".format(snapshot_date))
 
     @classmethod
     def parse_date(cls, date):
