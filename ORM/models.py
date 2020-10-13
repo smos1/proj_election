@@ -20,6 +20,7 @@ class Nominator(models.Model):
 
 class Region(models.Model):
     name = models.CharField(max_length=200)
+    name_eng = models.CharField(max_length=200)
 
     def __str__(self):
         return self.name
@@ -56,7 +57,8 @@ class Commission(models.Model):
     iz_id = models.BigIntegerField(blank=True, null=True)
     name = models.CharField(max_length=1000)
     commission_type = models.CharField(max_length=10, choices=CommissionType.choices())
-    address = models.CharField(max_length=2000)
+    address = models.CharField(max_length=2000,
+                             blank=True, null=True) # address data is missing on occasion
     superior_commission = models.ForeignKey("self", on_delete=models.CASCADE,
                                             blank=True, null=True)
     region = models.ForeignKey(Region, on_delete=models.CASCADE,
@@ -69,7 +71,7 @@ class Commission(models.Model):
                              blank=True, null=True)
     end_date = models.CharField(max_length=250,
                                 blank=True, null=True)
-    address_voteroom = models.CharField(max_length=250,
+    address_voteroom = models.CharField(max_length=2000,
                                         blank=True, null=True)
     phone_voteroom = models.CharField(max_length=250,
                                       blank=True, null=True)
