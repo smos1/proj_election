@@ -15,11 +15,12 @@ from sqlalchemy.engine import url
 from django_pandas.io import read_frame
 
 from elections_db.settings import SQLALCHEMY_DB_CREDENTIALS
+from enums import CommissionType, CommissionPositionType
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "elections_db.settings")
 django.setup()
 
-from ORM.models import Commission, CommissionMember, Nominator
+from ORM.models import Commission, CommissionMember, Nominator, Region
 
 
 class CommissionDataDownloader:
@@ -33,6 +34,7 @@ class CommissionDataDownloader:
     SNAPSHOT_DATE = 'snapshot_date'
     NAME = 'name'
     DEFAULT = 'default'
+    REGION = 'region'
 
     GISLAB_SNAPSHOT_DATES = ["20140404",
                              "20140629",
@@ -69,19 +71,37 @@ class CommissionDataDownloader:
                      ManyToManyField: pd.Int64Dtype(),
                      OneToOneField: pd.Int64Dtype()}
 
-    TRANSLATE_CIK_TO_OUR_BASE = {
+    TRANSLATE_CIK_COLUMNS_TO_OUR_BASE = {
         'parent_id': 'superior_commission_id',
         'type_ik': 'commission_type',
         'post': 'position',
         'fio': 'name',
         'party': 'nominator_id',
-        'ik_id': 'commission_id'
+        'ik_id': 'commission_id',
+        'region': 'region_id'
+    }
+
+    TRANSLATE_CIK_VALUES_TO_OUR_BASE = {
+        'commission_type': {'cik': CommissionType.CIK.name,
+                            'sik': CommissionType.SIK.name,
+                            'ik': CommissionType.OIK.name,
+                            'mik': CommissionType.MIK.name,
+                            'tik': CommissionType.TIK.name,
+                            'uik': CommissionType.UIK.name,
+                            },
+        'position': {'Зам.председателя': CommissionPositionType.DEPUTY.name,
+                     'Председатель': CommissionPositionType.HEAD.name,
+                     'Секретарь': CommissionPositionType.SECRETARY.name,
+                     'Член': CommissionPositionType.MEMBER.name}
     }
 
     @classmethod
     def change_column_names(cls, df):
-        df.rename(columns = cls.TRANSLATE_CIK_TO_OUR_BASE, inplace=True)
+        df.rename(columns = cls.TRANSLATE_CIK_COLUMNS_TO_OUR_BASE, inplace=True)
 
+    @classmethod
+    def change_column_values(cls, df):
+        df.replace(cls.TRANSLATE_CIK_VALUES_TO_OUR_BASE, inplace=True)
 
     @classmethod
     def create_sqlalchemy_engine(cls):
@@ -131,6 +151,7 @@ class CommissionDataDownloader:
         elif cls.ID not in df.columns:
             df = df.reset_index().rename(columns = {'index': cls.ID})
         cls.change_column_names(df)
+        cls.change_column_values(df)
         missing_columns = np.setdiff1d(list(model_field_names.keys()), df.columns)
         if missing_columns.size>0:
             print('These columns are missing in downloaded df: {}'.format(list(missing_columns)))
@@ -161,6 +182,7 @@ class CommissionDataDownloader:
     def _repalace_old_index_with_new(cls, index_df, target_df, target_column_name):
         '''
         replaces values in target_df index columns with values of new index
+        index df should have old keys in first column and new keys in second column
         '''
         new_index_name = cls.NEW + target_column_name
         index_df.columns = [target_column_name, new_index_name]
@@ -168,6 +190,7 @@ class CommissionDataDownloader:
         target_df.drop(target_column_name, inplace=True, axis=1)
         target_df.rename(columns={new_index_name: target_column_name}, inplace=True)
         return target_df
+
 
     @classmethod
     def update_nominators(cls, nominator_list):
@@ -206,6 +229,8 @@ class CommissionDataDownloader:
         people_index_df = cls._make_new_index(cik_people_data, max_member_id+1)
         cik_people_data = cls._repalace_old_index_with_new(people_index_df, cik_people_data, cls.ID)
 
+        region_frame = read_frame(Region.objects.all())[['name_eng', 'id']]
+        cik_uik_data = cls._repalace_old_index_with_new(region_frame, cik_uik_data, cls.REGION)
         cik_uik_data = cls.assure_df_compatibility(Commission, cik_uik_data, auto_id=False)
 
 
