@@ -20,7 +20,6 @@ class RegionUploader(Uploader):
     def save_data_to_db(self, region_data):
         Region.objects.all().delete()
         max_region_id = Region.objects.aggregate(Max(self.ID))['id__max']
-        print(max_region_id)
         max_region_id = max_region_id if max_region_id else -1
 
         region_index_df = self._make_new_index(region_data, max_region_id+1)
