@@ -18,6 +18,7 @@ class RegionUploader(Uploader):
 
     @classmethod
     def save_data_to_db(self, region_data):
+        # delete() returns out of memory error
         Region.objects.all().delete()
         max_region_id = Region.objects.aggregate(Max(self.ID))['id__max']
         max_region_id = max_region_id if max_region_id else -1
@@ -28,7 +29,7 @@ class RegionUploader(Uploader):
 
         engine = self.create_sqlalchemy_engine()
         region_data.to_sql(Region.objects.model._meta.db_table,
-                            if_exists='append', index=False, con=engine, method='multi', chunksize=10)
+                            if_exists='append', index=False, con=engine, method='multi', chunksize=1000)
 
 
 if __name__ == '__main__':
