@@ -43,7 +43,6 @@ class Election(models.Model):
                                           blank=True, null=True)
     election_date = models.DateField(blank=False, null=False)
 
-
     def __str__(self):
         return self.name
 
@@ -143,7 +142,6 @@ class District(models.Model):
 
 
 class CandidatePerformance(models.Model):
-
     name = models.CharField(max_length=1000)
     candidate_type = models.CharField(max_length=20, choices=CandidateType.choices())
     commission = models.ForeignKey(Commission, on_delete=models.CASCADE)
@@ -157,3 +155,69 @@ class CandidatePerformance(models.Model):
     class Meta:
         managed = True
         db_table = 'candidate_performance'
+
+
+class CikUik(models.Model):
+    id = models.IntegerField(blank=True, null=True)
+    iz_id = models.BigIntegerField(blank=True, null=True)
+    reserve_iz_id = models.BigIntegerField(blank=True, null=True)
+    parent_id = models.IntegerField(blank=True, null=True)
+    name = models.CharField(max_length=1000, blank=True, null=True)
+    type_ik = models.CharField(max_length=10, blank=True, null=True)
+    address = models.CharField(max_length=2000, blank=True, null=True)
+    region = models.CharField(max_length=250,
+                             blank=True, null=True)
+    phone = models.CharField(max_length=250,
+                             blank=True, null=True)
+    fax = models.CharField(max_length=250,
+                           blank=True, null=True)
+    email = models.CharField(max_length=250,
+                             blank=True, null=True)
+    end_date = models.CharField(max_length=250,
+                                blank=True, null=True)
+    address_voteroom = models.CharField(max_length=250,
+                                        blank=True, null=True)
+    phone_voteroom = models.CharField(max_length=250,
+                                      blank=True, null=True)
+    lat_ik = models.CharField(max_length=250,
+                              blank=True, null=True)
+    lon_ik = models.CharField(max_length=250,
+                              blank=True, null=True)
+    lat_voteroom = models.CharField(max_length=250,
+                                    blank=True, null=True)
+    lon_voteroom = models.CharField(max_length=250,
+                                    blank=True, null=True)
+    snapshot_date = models.DateField(blank=False, null=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        managed = True
+        db_table = 'cik_uik'
+
+
+class ResultsVseros(models.Model):
+    name = models.CharField(max_length=1000)
+    reg = models.CharField(max_length=200)
+    tik = models.CharField(max_length=1000)
+    uik = models.CharField(max_length=1000)
+    amount_of_voters = models.IntegerField()
+    ballots_given_out_total = models.IntegerField()
+    invalid_ballots = models.IntegerField()
+    yes = models.IntegerField()
+    no = models.IntegerField()
+    url = models.CharField(max_length=1000)
+    uik_id = models.IntegerField()
+    tik_id = models.IntegerField()
+    
+    def __str__(self):
+        return '{0} - {1}'.format(self.tik, self.tik_id)
+
+    class Meta:
+        managed = True
+        db_table = 'results_vseros'
+
+
+
+
