@@ -1,0 +1,3 @@
+/credentials.json
+/ORM/migrations/*
+**/__pycache__
