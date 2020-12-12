@@ -5,7 +5,7 @@ making sure the parsed data matches external data for constitution vote
 
 import pandas as pd
 
-old_data = pd.read_csv('results.txt', sep='\t').drop(['name', 'url'], axis=1)
+old_data = pd.read_csv('results_external.txt', sep='\t').drop(['name', 'url'], axis=1)
 parsed_data = pd.read_csv('data_01_07_2020_constitution_voting.csv').drop(['URL субъекта федерации', 'URL ТИКА'], axis=1)
 
 rename_columns = {'Число участников голосования, включенных в список участников голосования на момент окончания голосования':'amount_of_voters',
