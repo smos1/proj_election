@@ -3,10 +3,10 @@
 
 # In[1]:
 import os
-os.chdir(r'C:\Users\eldii\Documents\GitHub\proj_election\parser_preliminary_results')
+os.chdir(r'D:\Documents\GitHub\proj_election\parser_preliminary_results')
 import pytesseract
 # path setup
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 import pickle
 import pandas as pd
@@ -18,7 +18,7 @@ from helper import *
 # load the dataframe with links
 df = pd.read_csv('start_page_2010.csv')
 
-driver_path = "./chromedriver.exe"
+driver_path = "D:\Downloads_new\chromedriver_win32/chromedriver.exe"
 driver = webdriver.Chrome(driver_path)
 # get links for  UIKs
 data = dict()

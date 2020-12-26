@@ -4,11 +4,12 @@
 # In[1]:
 # libraries and path setup
 import os
-os.chdir(r'C:\Users\eldii\Documents\GitHub\proj_election\parser_preliminary_results')
+os.chdir(r'D:\Documents\GitHub\proj_election\parser_preliminary_results')
 
 import pandas as pd
 from helper import runner
 
+# to give it a try with multiprocessing. Splits dict into a list of dicts to run the runner per chunk
 from itertools import islice
 
 def chunks(data, SIZE=10000):
@@ -21,5 +22,17 @@ def chunks(data, SIZE=10000):
 df = pd.read_csv('preliminary_results.csv')
 
 
+# get the data
+output=runner(df.link_to_UIK.to_dict())
+# In[3]:
 
-output=runner(df.link_to_UIK.sample(10).to_dict())
+# save the xls
+# id from preliminary results file will be passed into filename
+def store_data(x:dict) ->None:
+    
+    for i,j in x.items():
+        j.to_excel(f'./reports/report {i}.xls', index=True)
+    
+    return None
+
+store_data(output)

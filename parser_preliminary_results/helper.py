@@ -12,10 +12,10 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import Select
 import re
 
-os.chdir(r'C:\Users\eldii\Documents\GitHub\proj_election\parser_preliminary_results')
+os.chdir(r'D:\Documents\GitHub\proj_election\parser_preliminary_results')
 
 # In[2]:
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def detect_captcha_text(image: BinaryIO) -> str:
     """Detects captcha text
@@ -211,6 +211,6 @@ def get_links_UIK(link: str, dct: dict, driver="driver") -> list:
 
 # get data
 def runner(urls: dict) -> dict:
-    driver_path = "./chromedriver.exe"
+    driver_path = "D:\Downloads_new\chromedriver_win32/chromedriver.exe"
     driver = webdriver.Chrome(driver_path)
     return {i: get_election_result(j, driver) for i,j in urls.items()}

@@ -7,7 +7,7 @@ import re
 
 
 # relocate the project
-os.chdir(r'C:\Users\eldii\Documents\GitHub\proj_election\parser_preliminary_results')
+os.chdir(r'D:\Documents\GitHub\proj_election\parser_preliminary_results')
 #main link and authorisation
 url="http://www.vybory.izbirkom.ru/region/izbirkom"
 
