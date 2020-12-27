@@ -40,7 +40,7 @@ MONTHS={
     'декабря':12,
     'января':1}
 
-def get_upper_level_links(start_date:date, end_date:date, headers, url):
+def get_upper_level_links(start_date:date, end_date:date, headers=HEADERS, url=CIK_LIST_URL):
 
     resp=r.post(url, headers=headers, data=DATA_STRING.format(start_date=start_date.strftime(REQUEST_DATE_FORMAT),
                                                               end_date=end_date.strftime(REQUEST_DATE_FORMAT)))
@@ -98,7 +98,7 @@ def create_df_from_soup_by_date(soup):
             'pronetvd': re.findall('pronetvd=(.*)', link)[0]
         })
 
-    return pd.DataFrame(x).assign(date=y)
+    return pd.DataFrame(ddct).assign(date=y)
 
 if __name__ == '__main__':
     df= get_upper_level_links(date(2010,1,1), date(2021,1,1), headers=HEADERS, url=CIK_LIST_URL)
