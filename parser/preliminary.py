@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+import multiprocessing
 import re
 
 import numpy as np
@@ -23,40 +24,45 @@ from UpperLevelLinkCollector import get_upper_level_links
 from selenium.webdriver.chrome.options import Options
 
 from helper import get_links_UIK, get_election_result
-
-chrome_options = Options()
-#chrome_options.add_argument("--headless")
+import numpy as np
 
 
-def parse_elections_main(start_date:date, end_date:date):
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+CHUNK_SIZE = 10
+
+def parse_elections_main(start_date:date, end_date:date, debug=True):
+
+    def get_results_from_upper_level_df(df):
+        data = dict()
+        for i, j in tqdm(df.iterrows(), desc="Collecting links_to UIKs"):
+            data.update({j.link: get_links_UIK(j.link, dct={}, driver=driver)})
+
+        df = pd.DataFrame([content for pack in data.values() for content in pack])
+        results_data = {i: get_election_result(i, driver, level=1) for i in df.link_to_UIK}
+        summary_data = {i: get_election_result(i, driver, level=1) for i in df.summary_found.unique()}
+
+        check_sums_vs_summary_data(results_data, summary_data)
+        return results_data
 
     df_with_links = get_upper_level_links(start_date, end_date)
+
     # get links for  UIKs
-    data=dict()
+    if debug:
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        get_results_from_upper_level_df(df_with_links)
+    else:
+        split_df = np.array_split(df_with_links, np.ceil(df_with_links.shape[0]/CHUNK_SIZE))
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+        pool = multiprocessing.Pool(processes=4)
+        results = pool.map(get_results_from_upper_level_df, split_df)
+        results = pd.concat(results, axis=0)
 
-    for i,j in tqdm(df_with_links.iterrows(), desc="Collecting links_to UIKs"):
-        data.update({j.link:get_links_UIK(j.link, dct={}, driver=driver)})
-
-    df = pd.DataFrame([content for pack in data.values() for content in pack])
-
-    results_data = {i: get_election_result(i, driver, level=1) for i in df.link_to_UIK}
-
-    summary_data = {i: get_election_result(i, driver, level=1) for i in df.summary_found.unique()}
-
-    return results_data
-
-
-def process(dct, path=[]):
-    list_of_tuples = []
-    for i, j in dct.items():
-        if isinstance(j, str):
-            list_of_tuples.append((path + [i], j))
-        elif isinstance(j, dict):
-            list_of_tuples += process(j, path + [i])
-    return list_of_tuples
+    return results
 
 
+def check_sums_vs_summary_data(results_data, summary_data):
+    pass
 
 
 
