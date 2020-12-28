@@ -21,7 +21,6 @@ def detect_captcha_text(image: BinaryIO) -> str:
     Returns:
         string: captcha symbols
     """
-    print('a')
     stream = BytesIO(image)
     image_rgb = Image.open(stream).convert("RGBA")
     stream.close()
@@ -79,11 +78,12 @@ def get_through_captcha(driver, url: str):
 
 
 
-def get_election_result(url: str, driver) -> pd.DataFrame:
+def get_election_result(url: str, driver, level=1) -> pd.DataFrame:
     """Load election result data
     Args:
         url (str): url link
         driver : selenium driver
+        level: 1/2 position of link to election table from the bottom of the page (1 for UIK data, 2 for summary data)
     Returns:
         None: returns nothing, it downloads data
     """
@@ -91,15 +91,26 @@ def get_election_result(url: str, driver) -> pd.DataFrame:
 
     time.sleep(SLEEP_TIME)
     get_through_captcha(driver, url)
-    vote_table = driver.find_elements_by_css_selector("tr>td>nobr>a")[-1]
+    vote_table = driver.find_elements_by_css_selector("tr>td>nobr>a")[-level]
     vote_table.click()
-    table = pd.read_html(
-        str(BeautifulSoup(driver.page_source, features="lxml").select('table:nth-of-type(5)')))[0]
-    return table
+    table_result = str(BeautifulSoup(driver.page_source, features="lxml").select('table:nth-of-type(5)'))
+    if table_result=='[]':
+        return None
+    else:
+        return pd.read_html(table_result)[0]
 
 
-def test_if_new_layers(driver, level_name: str, inceptions_level=0, output=dict()) -> list:
+
+def test_if_new_layers(driver, elections_url, level_name=None, inceptions_level=0, output=[], summary_found="", summary_level_name=None, path=[]) -> list:
     flag_direct_selection = 0
+
+    if not summary_found:
+        cur_url = driver.current_url
+        table = get_election_result(driver.current_url, driver, level=2)
+        if type(table)==pd.DataFrame:
+            summary_found = cur_url
+            summary_level_name = level_name
+        driver.back()
 
     try:
         link_to_real_data = driver.find_element_by_xpath(
@@ -116,12 +127,15 @@ def test_if_new_layers(driver, level_name: str, inceptions_level=0, output=dict(
             "/html/body/table[2]/tbody/tr[2]/td/a")
         link_to_real_data.click()
 
-        if inceptions_level == 0:
-            output.update({'direct': [k['value'] for k in BeautifulSoup(
-                driver.page_source, features="lxml").select('option[value]')]})
-        else:
-            output.update({level_name: [k['value'] for k in BeautifulSoup(
-                driver.page_source, features="lxml").select('option[value]')]})
+        path = 'direct' if inceptions_level==0 else path
+        output += [{'uik':k.next,
+                    'path':path,
+                    'summary_found':summary_found,
+                    'summary_level_name':summary_level_name,
+                    'link_to_UIK':k['value'],
+                    'elections_url':elections_url} for k in BeautifulSoup(
+                driver.page_source, features="lxml").select('option[value]')]
+                           
         return output
 
     elif flag_direct_selection == 2:
@@ -138,9 +152,14 @@ def test_if_new_layers(driver, level_name: str, inceptions_level=0, output=dict(
             driver.find_element_by_xpath(
                 "/html/body/table[2]/tbody/tr[2]/td/form/input").click()
             inceptions_level += 1
-            output.update({options_values[i]: test_if_new_layers(
-                driver, options_values[i], inceptions_level, dict())})
-
+            test_if_new_layers(driver=driver,
+                               elections_url=elections_url,
+                               level_name=options_values[i],
+                               inceptions_level=inceptions_level,
+                               output = output,
+                               summary_found=summary_found,
+                               summary_level_name=summary_level_name,
+                               path=path+[options_values[i]])
             back_steps(driver)
 
         return output
@@ -159,17 +178,17 @@ def back_steps(driver) -> int:
         return None
 
 
-def get_links_UIK(link: str, dct: dict, driver="driver") -> list:
+def get_links_UIK(link: str, dct: dict, driver) -> list:
     #time.sleep()
     get_through_captcha(driver, link)
-    list_of_links_to_UIK_data = test_if_new_layers(driver, 'direct', 0, dct)
+
+    list_of_links_to_UIK_data = test_if_new_layers(driver=driver,
+                                                   elections_url=link,
+                                                   level_name='direct',
+                                                   inceptions_level=0,
+                                                   path=[],
+                                                   output=[])
 
     return list_of_links_to_UIK_data
 
 
-
-# get data
-def runner(urls: dict) -> dict:
-    driver_path = "D:\Downloads_new\chromedriver_win32/chromedriver.exe"
-    driver = webdriver.Chrome(driver_path)
-    return {i: get_election_result(j, driver) for i,j in urls.items()}

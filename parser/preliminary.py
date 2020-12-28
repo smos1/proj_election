@@ -38,19 +38,19 @@ def parse_elections_main(start_date:date, end_date:date):
     for i,j in tqdm(df_with_links.iterrows(), desc="Collecting links_to UIKs"):
         data.update({j.link:get_links_UIK(j.link, dct={}, driver=driver)})
 
-    processed_dicts = [[a[0][0], a[0][1:], a[1]] for a in process(data, [])]
+    df = pd.DataFrame([content for pack in data.values() for content in pack])
 
-    df = pd.DataFrame(processed_dicts).explode(2, ignore_index=True)
+    results_data = {i: get_election_result(i, driver, level=1) for i in df.link_to_UIK}
 
-    result_data = {i: get_election_result(j, driver) for i, j in df.items()}
+    summary_data = {i: get_election_result(i, driver, level=1) for i in df.summary_found.unique()}
 
-    return result_data
+    return results_data
 
 
 def process(dct, path=[]):
     list_of_tuples = []
     for i, j in dct.items():
-        if isinstance(j, list):
+        if isinstance(j, str):
             list_of_tuples.append((path + [i], j))
         elif isinstance(j, dict):
             list_of_tuples += process(j, path + [i])
@@ -64,4 +64,4 @@ def process(dct, path=[]):
 
 
 if __name__ == '__main__':
-    parse_elections_main(date(2020,1,1), date(2020,1,27))
+    parse_elections_main(date(2020,9,12), date(2020,9,14))
