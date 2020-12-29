@@ -8,3 +8,4 @@ from ORM.models import Election
 
 if __name__=="__main__":
     data = Election.objects.all()
+    data
