@@ -66,10 +66,10 @@ def get_upper_level_links(start_date:date, end_date:date, headers=HEADERS, url=C
     df = pd.concat(list(map(create_df_from_soup_by_date, dct.items())), ignore_index=True)
 
     df[['vrn', 'region', 'prver']] = df[['vrn', 'region', 'prver']].astype(int)
-    df[['day', 'month', 'year']] = df.date.str.split(expand=True).loc[:, :2]
+    df[['day', 'month', 'year']] = df.election_date.str.split(expand=True).loc[:, :2]
 
     df.month = df.month.map(MONTHS)
-
+    df.election_date = [date(int(year), month, int(day)) for year, month, day in zip(df.year, df.month, df.day)]
     assert(total_number_of_entries==df.shape[0])
 
     return df
@@ -90,15 +90,15 @@ def create_df_from_soup_by_date(soup):
         ddct.append({
             'loc1': location,
             'loc2': loc2,
-            'text': text,
-            'link': link,
+            'name': text,
+            'election_url': link,
             'vrn': re.findall('vrn=(.*?)&', link)[0],
             'region': re.findall('region=(.*?)&', link)[0],
             'prver': re.findall('prver=(.*?)&', link)[0],
             'pronetvd': re.findall('pronetvd=(.*)', link)[0]
         })
 
-    return pd.DataFrame(ddct).assign(date=y)
+    return pd.DataFrame(ddct).assign(election_date=y)
 
 if __name__ == '__main__':
     df= get_upper_level_links(date(2010,1,1), date(2021,1,1), headers=HEADERS, url=CIK_LIST_URL)

@@ -33,8 +33,8 @@ class Region(models.Model):
 
 class Election(models.Model):
     name = models.CharField(max_length=1000)
-    election_level = models.CharField(max_length=50, choices=ElectionLevel.choices())
-    election_mandate_type = models.CharField(max_length=50, choices=ElectionMandateType.choices())
+    election_level = models.CharField(max_length=50, choices=ElectionLevel.choices(), blank=True, null=True)
+    election_mandate_type = models.CharField(max_length=50, choices=ElectionMandateType.choices(), blank=True, null=True)
     mandates = models.IntegerField(blank=True, null=True)
     previous_election = models.ForeignKey("self", on_delete=models.DO_NOTHING,
                                           related_name='next_elections',
@@ -43,6 +43,7 @@ class Election(models.Model):
                                           related_name='child_elections',
                                           blank=True, null=True)
     election_date = models.DateField(blank=False, null=False)
+    election_url = models.TextField(blank=False, null=False)
 
 
     def __str__(self):
@@ -110,11 +111,13 @@ class CommissionMember(models.Model):
 
 
 class CommissionProtocol(models.Model):
-    commission = models.ForeignKey(Commission, on_delete=models.CASCADE)
+    commission = models.ForeignKey(Commission, on_delete=models.CASCADE, blank=True, null=True)
+    protocol_url = models.TextField()
     election = models.ForeignKey(Election, on_delete=models.CASCADE)
     amount_of_voters = models.IntegerField()
     ballots_received = models.IntegerField()
     ballots_given_out_early = models.IntegerField()
+    ballots_given_out_early_at_superior_commission = models.IntegerField()
     ballots_given_out_at_stations = models.IntegerField()
     ballots_given_out_outside = models.IntegerField()
     ballots_given_out_total = models.IntegerField()
@@ -146,11 +149,13 @@ class District(models.Model):
 class CandidatePerformance(models.Model):
 
     name = models.CharField(max_length=1000)
-    candidate_type = models.CharField(max_length=20, choices=CandidateType.choices())
-    commission = models.ForeignKey(Commission, on_delete=models.CASCADE)
+    candidate_type = models.CharField(max_length=20, choices=CandidateType.choices(), blank=True, null=True)
+    commission = models.ForeignKey(CommissionProtocol, on_delete=models.CASCADE)
     election = models.ForeignKey(Election, on_delete=models.CASCADE)
-    nominator = models.ForeignKey(Nominator, on_delete=models.CASCADE)
+    nominator = models.ForeignKey(Nominator, on_delete=models.CASCADE, blank=True, null=True)
+    candidate_birth_date = models.DateField(blank=True, null=True)
     votes = models.IntegerField()
+
 
     def __str__(self):
         return self.name

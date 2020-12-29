@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import Select
 import re
 import numpy as np
 
-SLEEP_TIME = 0.5
+SLEEP_TIME = 0.1
 
 def detect_captcha_text(image: BinaryIO) -> str:
     """Detects captcha text
@@ -84,8 +84,6 @@ def get_election_result(url: str, driver, level=1) -> pd.DataFrame:
         url (str): url link
         driver : selenium driver
         level: 1/2 position of link to election table from the bottom of the page (1 for UIK data, 2 for summary data)
-    Returns:
-        None: returns nothing, it downloads data
     """
     driver.get(url)
 
@@ -94,6 +92,24 @@ def get_election_result(url: str, driver, level=1) -> pd.DataFrame:
     vote_table = driver.find_elements_by_css_selector("tr>td>nobr>a")[-level]
     vote_table.click()
     table_result = str(BeautifulSoup(driver.page_source, features="lxml").select('table:nth-of-type(5)'))
+    if table_result=='[]':
+        return None
+    else:
+        return pd.read_html(table_result)[0]
+
+def get_candidates_list(url: str, driver) -> pd.DataFrame:
+    """Load candidates_list from commission page
+    Args:
+        url (str): url link for comission
+        driver : selenium driver
+    """
+    driver.get(url)
+
+    time.sleep(SLEEP_TIME)
+    get_through_captcha(driver, url)
+    vote_table = driver.find_element_by_link_text("Сведения о кандидатах")
+    vote_table.click()
+    table_result = str(BeautifulSoup(driver.page_source, features="lxml").find(id="table-2"))
     if table_result=='[]':
         return None
     else:
@@ -128,11 +144,11 @@ def test_if_new_layers(driver, elections_url, level_name=None, inceptions_level=
         link_to_real_data.click()
 
         path = 'direct' if inceptions_level==0 else path
-        output += [{'uik':k.next,
+        output += [{'commission':k.next,
                     'path':path,
                     'summary_found':summary_found,
                     'summary_level_name':summary_level_name,
-                    'link_to_UIK':k['value'],
+                    'protocol_url':k['value'],
                     'elections_url':elections_url} for k in BeautifulSoup(
                 driver.page_source, features="lxml").select('option[value]')]
                            

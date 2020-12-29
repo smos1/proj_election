@@ -56,6 +56,7 @@ class CommissionDataDownloader:
                              "20200610",
                              "20200628",
                              "20200910"]
+    #TODO check new snapshots
 
     BASE_GISLAB_URL = 'http://gis-lab.info/data/cik/'
 
@@ -193,7 +194,7 @@ class CommissionDataDownloader:
 
 
     @classmethod
-    def update_nominators(cls, nominator_list):
+    def update_nominators(cls, nominator_list, connection):
         '''
         checks if nominators from list exist in database and adds them if needed
         '''
@@ -203,9 +204,8 @@ class CommissionDataDownloader:
 
         ## add nominator classification_function_here
         if updatable_nominators.size > 0:
-            engine = cls.create_sqlalchemy_engine()
             pd.DataFrame({cls.NAME:updatable_nominators}).to_sql(Nominator.objects.model._meta.db_table, if_exists='append',
-                                                                 index=False, con=engine, method='multi', chunksize=1000)
+                                                                 index=False, con=connection, method='multi', chunksize=1000)
 
     @classmethod
     def save_all_data_to_db(cls, cik_uik_data, cik_people_data, snapshot_date):
@@ -235,17 +235,20 @@ class CommissionDataDownloader:
 
 
         engine = cls.create_sqlalchemy_engine()
-        cik_uik_data.to_sql(Commission.objects.model._meta.db_table,
-                            if_exists='append', index=False, con=engine, method='multi', chunksize=1000)
+        connection = engine.connect()
+        locked = connection.execute('SELECT pg_try_advisory_lock(23)')
 
-        cls.update_nominators(cik_people_data['party'].dropna().values)
+        cik_uik_data.to_sql(Commission.objects.model._meta.db_table,
+                            if_exists='append', index=False, con=connection, method='multi', chunksize=1000)
+
+        cls.update_nominators(cik_people_data['party'].dropna().values, connection)
         nominator_frame = read_frame(Nominator.objects.all())[['name', 'id']]
         cik_people_data = cls._repalace_old_index_with_new(nominator_frame, cik_people_data, 'party')
         cik_people_data = cls.assure_df_compatibility(CommissionMember, cik_people_data, auto_id=False)
 
         cik_people_data.to_sql(CommissionMember.objects.model._meta.db_table,
-                               if_exists='append', index=False, con=engine, method='multi', chunksize=1000)
-
+                               if_exists='append', index=False, con=connection, method='multi', chunksize=1000)
+        connection.execute('SELECT pg_advisory_unlock(23)')
 
 
 if __name__ == '__main__':
