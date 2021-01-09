@@ -17,13 +17,22 @@ from ORM.models import Election, CommissionProtocol, CandidatePerformance, Nomin
 
 class ElectionDataPackage:
 
+    '''
+    This class collects and handles all data that's related to a set of elections
+    '''
+
     ID='id'
 
     protocol_row_mapping = {CommissionProtocol.amount_of_voters.field.name: 
                                 {"Число участников голосования, включенных в список участников голосования на момент окончания голосования",
+                                 "число избирателей, внесенных в списки на момент окончания голосования",
                                  "Число избирателей, внесенных в список на момент окончания голосования",
                                  "Число избирателей, включенных в список",
-                                 "число избирателей, внесенных в список избирателей на момент окончания голосования"
+                                 "число избирателей, внесенных в список избирателей на момент окончания голосования",
+                                 "число избирателей, внесенных в список",
+                                 "число избирателей, участников референдума, внесенных в список на момент окончания голосования",
+                                 "число избирателей, включенных в список избирателей на момент окончания голосования,",
+                                 "число участников референдума, внесенных в список на момент окончания голосования"
                                  },
                             CommissionProtocol.ballots_given_out_total.field.name:
                                 {"Число бюллетеней, выданных участникам голосования"
@@ -32,7 +41,9 @@ class ElectionDataPackage:
                                 {"Число бюллетеней, содержащихся в ящиках для голосования"
                                  },
                             CommissionProtocol.invalid_ballots.field.name:
-                                {"Число недействительных бюллетеней"
+                                {"Число недействительных бюллетеней",
+                                 "число недействительных избирательных бюллетеней",
+                                 "общее число недействительных бюллетеней"
                                  },
                             CommissionProtocol.valid_ballots.field.name:
                                 {"Число действительных бюллетеней",
@@ -41,25 +52,62 @@ class ElectionDataPackage:
                             CommissionProtocol.ballots_received.field.name:
                                 {"Число бюллетеней, полученных УИК",
                                  "число бюллетеней, полученных участковой избирательной комиссией",
-                                 "Число избирательных бюллетеней, полученных участковой комиссией"
+                                 "Число избирательных бюллетеней, полученных участковой комиссией",
+                                 "число бюллетеней, полученных участковыми комиссиями",
+                                 "число избирательных бюллетеней, полученных участковой избирательной комиссией",
+                                 "число бюллетеней, полученных участковой комиссией",
                                  },
                             CommissionProtocol.ballots_given_out_early.field.name:
                                 {"Число избирательных бюллетеней, выданных избирателям, проголосовавшим досрочно",
-                                 "число бюллетеней, выданных избирателям, проголосовавшим досрочно"
+                                 "число бюллетеней, выданных избирателям, проголосовавшим досрочно",
+                                 "число бюллетеней, выданных избирателям, проголосовавшим досрочно, в том числе",
+                                 "число бюллетеней, выданных досрочно, в том числе:",
+                                 "число бюллетеней, выданных избирателям, участникам референдума, проголосовавшим досрочно, в том числе отдельной строкой",
+                                 "число бюллетеней, выданных участникам референдума, проголосовавшим досрочно"
                                  },
                             CommissionProtocol.ballots_given_out_early_at_superior_commission.field.name:
                                 {"Число бюллетеней, проголосовавшим досрочно в ИКМО, ОИК",
-                                 "Число избирательных бюллетеней, выданных избирателям, проголосовавшим досрочно, в помещении территориальной избирательной комиссии"
+                                 "Число избирательных бюллетеней, выданных избирателям, проголосовавшим досрочно, в помещении территориальной избирательной комиссии",
+                                 "число бюллетеней, выданных избирателям, проголосовавшим досрочно в помещении территориальной избирательной комиссии",
+                                 "в помещении тик", # число бюллетеней, выданных досрочно, в том числе:
+                                 "в том числе в помещении муниципиальной (территориальной) комиссии", # Число избирательных бюллетеней, выданных избирателям, проголосовавшим досрочно
+                                 "проголосовавшим в помещении территориальной (окружной) комиссии, избирательной комиссии муниципального образования", # число бюллетеней, выданных избирателям, участникам референдума, проголосовавшим досрочно, в том числе отдельной строкой
+                                 "в том числе в помещении территориальной (окружной) комиссии, комиссии муниципального образования", # Число бюллетеней, выданных избирателям, проголосовавшим досрочно
+                                 "в том числе в помещении муниципальной (окружной) комиссии", #Число бюллетеней, выданных избирателям, проголосовавшим досрочно
+                                 "в том числе в помещении избирательной комиссии муниципального образования", #	Число избирательных бюллетеней, выданных избирателям, проголосовавшим досрочно
+                                 },
+                            CommissionProtocol.ballots_given_out_early_far_away.field.name:
+                                {"в труднодоступных или отдаленных местностях" #число бюллетеней, выданных избирателям, проголосовавшим досрочно, в том числе
+                                 },
+                            CommissionProtocol.ballots_given_out_early_at_uik.field.name:
+                                {"в помещениях участковых избирательных комиссий", # число бюллетеней, выданных избирателям, проголосовавшим досрочно, в том числе
                                  },
                             CommissionProtocol.ballots_given_out_at_stations.field.name:
                                 {"Число бюллетеней, выданных в помещении в день голосования",
                                  "число бюллетеней, выданных избирателям в помещении для голосования в день голосования",
-                                 "Число избирательных бюллетеней, выданных избирателям, в помещении для голосования в день голосования"
+                                 "Число избирательных бюллетеней, выданных избирателям, в помещении для голосования в день голосования",
+                                 "число бюллетеней, выданных избирателям в помещениях для голосования",
+                                 "число бюллетеней, выданных в помещении для голосования в день голосования",
+                                 "число избирательных бюллетеней, выданных в помещении для голосования в день голосования"
+                                 "число бюллетеней, выданных в уик",
+                                 "число избирательных бюллетеней, выданных избирателям в помещении для голосования в день голосования",
+                                 "число бюллетеней, выданных участковой комиссией в помещении",
+                                 "число бюллетеней, выданных избирателям, участникам референдума в помещении для голосования в день голосования",
+                                 "число бюллетеней, выданных участникам референдума в помещении для голосования в день голосования"
                                  },
                             CommissionProtocol.ballots_given_out_outside.field.name:
                                 {"Число бюллетеней, выданных вне помещения в день голосования",
                                  "число бюллетеней, выданных избирателям, проголосовавшим вне помещения для голосования",
-                                 "Число избирательных бюллетеней, выданных избирателям, проголосовавшим вне помещения для голосования"
+                                 "Число избирательных бюллетеней, выданных избирателям, проголосовавшим вне помещения для голосования",
+                                 "число избирательных бюллетеней, выданных вне помещения для голосования в день голосования",
+                                 "число бюллетеней, выданных избирателям, проголосовавшим вне помещения для голосования в день голосов",
+                                 "число избирательных бюллетеней, выданных избирателям, проголосовавшим вне помещения для голосования в день голосования",
+                                 "число бюллетеней, выданных избирателям, участникам референдума, проголосовавшим вне помещения для голосования",
+                                 "число бюллетеней, выданных избирателям, проголосовавшим вне помещений для голосования",
+                                 "число бюллетеней, выданных участникам референдума, проголосовавшим вне помещения для голосования в день голосования",
+                                 "число бюллетеней, выданных вне уик",
+                                 "число бюллетеней, выданных избирателям вне помещения",
+                                 "число бюллетеней, выданных вне помещения для голосования в день голосов"
                                  },
                             CommissionProtocol.canceled_ballots.field.name:
                                 {"Число погашенных избирательных бюллетеней",
@@ -68,30 +116,36 @@ class ElectionDataPackage:
                             CommissionProtocol.ballots_found_outside.field.name:
                                 {"Число бюллетеней, содержащихся в переносных ящиках",
                                  "Число избирательных бюллетеней, содержащихся в переносных ящиках для голосования",
-                                 "число бюллетеней, содержащихся в переносных ящиках для голосования"
+                                 "число бюллетеней, содержащихся в переносных ящиках для голосования",
+                                 "число бюллетеней, содерж. в переносных ящиках"
                                  },
                             CommissionProtocol.ballots_found_at_station.field.name:
                                 {"Число бюллетеней, содержащихся в стационарных ящиках",
                                  "Число избирательных бюллетеней, содержащихся в стационарных ящиках для голосования",
-                                 "число бюллетеней, содержащихся в стационарных ящиках для голосования"
+                                 "число бюллетеней, содержащихся в стационарных ящиках для голосования",
+                                 "число бюллетеней, содерж. в стационарных ящиках"
                                  },
                             CommissionProtocol.lost_ballots.field.name:
                                 {"Число утраченных избирательных бюллетеней",
-                                 "число утраченных бюллетеней"
+                                 "число утраченных бюллетеней",
+                                 "число бюллетеней по актам об утрате"
                                  },
                             CommissionProtocol.appeared_ballots.field.name:
                                 {"Число не учтенных при получении бюллетеней",
-                                 "Число бюллетеней, не учтенных при получении"
+                                 "Число бюллетеней, не учтенных при получении",
+                                 "число избирательных бюллетеней, не учтенных при получении"
                                  },
                             }
 
     candidates_technical = {"Against":
                                 {'против',
                                  "нет"},
-                            "for":
+                            "For":
                                 {"за",
                                  "да"}
                             }
+
+    candidates_technical_values = [inner for outer in candidates_technical.values() for inner in outer]
 
     protocol_row_mapping_with_t_candidates = z = {**protocol_row_mapping, **candidates_technical}
 
@@ -109,7 +163,7 @@ class ElectionDataPackage:
 
 
 
-    def __init__(self, protocol_uik_data: pd.DataFrame, candidate_performance: pd.DataFrame, nominators, election_metadata: pd.Series):
+    def __init__(self, protocol_uik_data: pd.DataFrame, candidate_performance: pd.DataFrame, nominators, election_metadata: pd.DataFrame):
         self.protocol_uik_data = protocol_uik_data
         self.candidate_performance = candidate_performance
         self.nominators = nominators
@@ -123,6 +177,7 @@ class ElectionDataPackage:
         self.upload_nominators()
 
         self.create_indices_manually()
+        Election.objects.filter(name__in=self.election_metadata['name'].tolist()).delete()
         self.upload_df_to_database_on_model(self.election_metadata, Election)
         self.upload_df_to_database_on_model(self.protocol_uik_data, CommissionProtocol)
         self.upload_df_to_database_on_model(self.candidate_performance, CandidatePerformance)
@@ -186,24 +241,38 @@ class ElectionDataPackage:
     @classmethod
     def create_packages(cls,
                         election_data: pd.Series,
-                        candidate_data: pd.DataFrame,
-                        results_data: pd.DataFrame):
-        protocol, candidate_performance = cls.process_results_data(results_data)
+                        candidate_performance: dict,
+                        candidate_data: dict,
+                        results_data: dict):
+        combined_protocols=[]
+        combined_performance=[]
+        combined_nominators=[]
+        for election_result_type in results_data.keys():
+            protocol_by_type = results_data[election_result_type]
+            candidate_performance_by_type= candidate_performance[election_result_type]
+            candidate_data_by_type = candidate_data[election_result_type]
 
-        candidate_performance = pd.melt(candidate_performance, id_vars=['commission', 'protocol_url'],
-                                        var_name=CandidatePerformance.name.field.name,
-                                        value_name=CandidatePerformance.votes.field.name).dropna()
-        protocol.loc[:, 'election_url'] = election_data['election_url']
-        candidate_performance.loc[:, 'election_url'] = election_data['election_url']
-        performance_frame_size = candidate_performance.shape[0]
-        candidate_performance = pd.merge(candidate_performance, candidate_data, on='name', how='left')
-        if performance_frame_size!=candidate_performance.shape[0]:
-            raise ValueError('Duplicate candidates found')
-
-        return ElectionDataPackage(protocol_uik_data= protocol,
-                                   candidate_performance= candidate_performance,
-                                   nominators = candidate_data.nominator.drop_duplicates(),
-                                   election_metadata = election_data)
+            candidate_performance_by_type = pd.melt(candidate_performance_by_type, id_vars=['commission', 'protocol_url'],
+                                            var_name=CandidatePerformance.name.field.name,
+                                            value_name=CandidatePerformance.votes.field.name).dropna()
+            protocol_by_type.loc[:, 'election_url'] = election_data['election_url']
+            candidate_performance_by_type.loc[:, 'election_url'] = election_data['election_url']
+            protocol_by_type.loc[:, 'election_type'] = election_result_type
+            candidate_performance_by_type.loc[:, 'election_type'] = election_result_type
+            performance_frame_size = candidate_performance_by_type.shape[0]
+            candidate_performance_by_type = pd.merge(candidate_performance_by_type, candidate_data_by_type, on='name', how='left')
+            if performance_frame_size!=candidate_performance_by_type.shape[0]:
+                raise ValueError('Duplicate candidates found')
+            combined_protocols.append(protocol_by_type)
+            combined_performance.append(candidate_performance_by_type)
+            combined_nominators.append(candidate_data_by_type.nominator.drop_duplicates())
+        combined_protocols = pd.concat(combined_protocols, axis=0)
+        combined_performance = pd.concat(combined_performance, axis=0)
+        combined_nominators = pd.concat(combined_nominators).drop_duplicates()
+        return ElectionDataPackage(protocol_uik_data= combined_protocols,
+                                   candidate_performance= combined_performance,
+                                   nominators = combined_nominators,
+                                   election_metadata = election_data.to_frame().T)
 
 
     @classmethod
@@ -211,35 +280,19 @@ class ElectionDataPackage:
         return ElectionDataPackage(
             protocol_uik_data= pd.concat([pack.protocol_uik_data for pack in list_of_packages], axis=0),
             candidate_performance=pd.concat([pack.candidate_performance for pack in list_of_packages], axis=0),
-            nominators=pd.concat([pack.nominators for pack in list_of_packages], axis=0),
-            election_metadata=pd.concat([pack.election_metadata for pack in list_of_packages], axis=1).T
+            nominators=pd.concat([pack.nominators for pack in list_of_packages], axis=0).drop_duplicates(),
+            election_metadata=pd.concat([pack.election_metadata for pack in list_of_packages], axis=0)
             )
 
-
     @classmethod
-    def process_results_data(cls, df):
-        df.columns = [cls.protocol_row_mapping_reversed[col] if col in cls.protocol_row_mapping_reversed else col for
-                      col in df.columns]
-        if CommissionProtocol.ballots_given_out_early_at_superior_commission.field.name in df.columns:
-            a= 1+1
-
-        cls.add_cols_if_missing(df)
-
-        protocol = df[df.columns & (set(cls.protocol_row_mapping.keys()) | {'commission', 'protocol_url'})]
-        candidates = df[set(df.columns).difference(set(cls.protocol_row_mapping.keys()))]
-
-        return protocol, candidates
-
-
-    @classmethod
-    def add_cols_if_missing(cls, df):
+    def add_protocol_items_if_missing(cls, ser):
         # add aggregate columns
-        for total_col, included_cols in cls.total_composition.items():
-            if total_col not in df.columns:
-               df[total_col] = df[df.columns & included_cols].sum(axis=1)
+        for total_item, included_items in cls.total_composition.items():
+            if total_item not in ser.index:
+               ser[total_item] = ser[ser.index & included_items].sum()
         # add other columns
-        missing_cols = set(cls.protocol_row_mapping.keys()).difference(df.columns)
-        for col in missing_cols:
-            df[col] = 0
+        missing_cols = set(cls.protocol_row_mapping.keys()).difference(ser.index.tolist())
+        for item in missing_cols:
+            ser[item] = 0
 
 
