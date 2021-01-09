@@ -1,6 +1,7 @@
 from datetime import date
 import requests as r
 import pandas as pd
+import numpy as np
 from bs4 import BeautifulSoup
 import re
 
@@ -70,6 +71,7 @@ def get_upper_level_links(start_date:date, end_date:date, headers=HEADERS, url=C
 
     df.month = df.month.map(MONTHS)
     df.election_date = [date(int(year), month, int(day)) for year, month, day in zip(df.year, df.month, df.day)]
+    df['loc2'] = df['loc2'].replace("", None).fillna(method = 'ffill')
     assert(total_number_of_entries==df.shape[0])
 
     return df
@@ -78,8 +80,9 @@ def create_df_from_soup_by_date(soup):
     y, x = soup
     ddct = []
     for i in x:
+        # if no tag is present, the region is the same as in previous entry
         if i.select('nobr'):
-            location = i.select('nobr b')[0].text.strip() # if no tag is present, the region is the same as in previous entry
+            location = i.select('nobr b')[0].text.strip()
 
         loc2, topic = i.select('td')
         loc2 = loc2.text.split(location)[-1].strip()

@@ -53,6 +53,10 @@ class Election(models.Model):
         managed = True
         db_table = 'election'
 
+        constraints = [
+            models.UniqueConstraint(fields=['election_url'], name='unique_election_url'),
+        ]
+
 
 class Commission(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -118,6 +122,8 @@ class CommissionProtocol(models.Model):
     ballots_received = models.IntegerField()
     ballots_given_out_early = models.IntegerField()
     ballots_given_out_early_at_superior_commission = models.IntegerField()
+    ballots_given_out_early_at_uik = models.IntegerField()
+    ballots_given_out_early_far_away = models.IntegerField()
     ballots_given_out_at_stations = models.IntegerField()
     ballots_given_out_outside = models.IntegerField()
     ballots_given_out_total = models.IntegerField()
@@ -129,10 +135,15 @@ class CommissionProtocol(models.Model):
     invalid_ballots = models.IntegerField()
     lost_ballots = models.IntegerField()
     appeared_ballots = models.IntegerField()
+    election_type = models.TextField()
 
     class Meta:
         managed = True
         db_table = 'commission_protocol'
+
+        constraints = [
+            models.UniqueConstraint(fields=['protocol_url', 'election_type'], name='unique_protocol_url'),
+        ]
 
 class District(models.Model):
     name = models.CharField(max_length=1000)
@@ -155,6 +166,7 @@ class CandidatePerformance(models.Model):
     nominator = models.ForeignKey(Nominator, on_delete=models.CASCADE, blank=True, null=True)
     candidate_birth_date = models.DateField(blank=True, null=True)
     votes = models.IntegerField()
+    election_type = models.TextField()
 
 
     def __str__(self):
